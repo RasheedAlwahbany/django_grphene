@@ -1,0 +1,9 @@
+#for quering from the database 
+query{
+  allBooks{
+      id,
+      title,
+			desc,
+			createdAt,
+  }
+}
