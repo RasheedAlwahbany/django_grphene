@@ -3,22 +3,34 @@ from venv import create
 import graphene
 from graphene_django import DjangoObjectType
 from .models import Books
+from graphene import relay
 
 class BooksType(DjangoObjectType):
     
     class Meta:
         model = Books
-        fields=('id','title','desc','created_at')
-            
+        interfaces = (relay.Node,)
+        fields=['id','title','desc','created_at']
+    
+
+        
+
+class BookConnection(relay.Connection):
+    class Meta:
+        node = BooksType
+    
 class Query(graphene.ObjectType):
     all_books=graphene.List(BooksType,name='all_books')
-    by_name=graphene.Field(BooksType)
+    by_title=graphene.Field(BooksType,title=graphene.String(required=True))
+    all_books_relay = relay.ConnectionField(BookConnection)
     
-    def resolve_all_books(self, info,**args):
-        return Books.objects.get(pk=args.get('id'))
+    def resolve_all_books(self, info):
+        return Books.objects.all()
+    def resolve_all_books_relay(self, info):
+        return Books.objects.all()
     
-    def resolve_by_name(self, info):
-        return Books.objects.get(title='Book 1')
+    def resolve_by_title(self, info,**args):
+        return Books.objects.filter(title=args.get('title')).first()
 
 
 
